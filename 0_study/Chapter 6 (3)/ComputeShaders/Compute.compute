@@ -1,0 +1,26 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain   //id 0
+#pragma kernel CS01     //id 1
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2D<float4> Result;     //RW = RandomWriting cabable texture (can be renderTexture)
+Texture2D<float4> ColTex;
+SamplerState sampler_ColTex;
+
+//num of threads used to process each texture texel (numthreads)
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)    //uint is only positive numbers
+{
+    uint width;
+    uint height;
+
+    Result.GetDimensions(width, height);
+
+    float2 uv = float2(id.xy / float2(width, height));  //texture must be declared in Clamp mode. If repeat, add 0.5f to id variable
+    float4 col = ColTex.SampleLevel(sampler_ColTex, uv, 0);     //SampleLevel(S,UV,LOD) - S is the texture, UV is the UV coordinates, LOD is the level of detail
+    
+    Result[id.xy] = col;
+
+    //Result[id.xy] = float4(id.x & id.y, (id.x & 15)/15.0, (id.y & 15)/15.0, 0.0);
+}
