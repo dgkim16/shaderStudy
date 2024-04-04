@@ -433,3 +433,24 @@ void main() {
     gl_FragColor = vec4(vn, 1.0);
 }
 ------------------------------------------------------------------
+
+
+
+passing texture as uniform
+----------------------vertex----------------------
+uniform sampler2D tex;
+varying vec2 vuv;
+
+void main() {
+    // gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    // bumpmap
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position + normal  * (1.0- texture2D(tex, uv).x), 1.0);
+    vuv = uv;
+}
+----------------------fragment----------------------
+uniform sampler2D tex;
+varying vec2 vuv;
+
+void main() {
+    gl_FragColor = texture2D(tx, vuv);
+}
