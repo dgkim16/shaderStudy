@@ -371,3 +371,65 @@ Pipeline
 2 - rasterize the triangles (into 'fragments') [fixed z-buffer algorithm] 
 3 - (fragment shader) figure out the color of the fragments. 
 4 - Write fragments to the image (with Z test) [fixed, z-buffer algorithm]
+
+
+making a bump on a sphere
+https://pages.cs.wisc.edu/~yw/CS559/Demos/shader.html
+----------------------vertex shader----------------------
+out vec4 t_fragPos;
+    void main() {
+    if(position.z * position.z + position.x * position.x <= 0.1 && position.y > 0.5) {
+        t_fragPos = modelMatrix * vec4(position + 0.5 * normal, 1.0);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position + 0.25 * normal, 1.0);
+    }
+    else {
+        t_fragPos = modelMatrix * vec4(position, 1.0);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position , 1.0);
+    }
+}   
+----------------------fragment shader----------------------
+in vec4 t_fragPos;
+void main() {
+    vec3 fragPos = t_fragPos.xyz;
+    gl_FragColor = vec4(t_fragPos.x, t_fragPos.y, t_fragPos.z, 1.0);
+}
+----------------------------------------------------------------------------------------
+reduce use of if & else in shader coding (not efficient)
+so, we can use this for the above vertex shader instead
+----------------------vertex shader----------------------
+out vec4 t_fragPos;
+void main() {
+    float offset = (position.z * position.z + position.x * position.x <= 0.1) ? 0.25 : 0.0;
+    t_fragPos = modelMatrix * vec4(position + offset * normal, 1.0);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position + offset * normal, 1.0);
+}
+----------------------------------------------------------------------------------------
+
+
+normal is property of verticies, not properties of pixels.
+So normal variable can not be accessed from fragment shader.
+It can only be accessed from vertex shader.
+So, define 'varying' variable to communicate between vertex to fragment shader.
+
+----------------------vertex----------------------
+uniform float t;
+uniform float u;
+attribute vec3 v;
+attribute vec3 color; // attribute set from buffer geometry
+varying vec3 vn;
+varying vec3 vc;
+void main() {
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    vn = normal;
+    vc = color; // sending three geometry's attribute property to fragment using varying variable
+}
+----------------------fragment----------------------
+uniform float t;
+uniform float u;
+varying vec3 vn;
+varying vec3 vc;
+
+void main() {
+    gl_FragColor = vec4(vn, 1.0);
+}
+------------------------------------------------------------------
