@@ -1,0 +1,77 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: gorani Nebula v1
+  m_Shader: {fileID: 4800000, guid: 24d4307ca93d4bf47b8ede892270ef27, type: 3}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex3D:
+        m_Texture: {fileID: 11700000, guid: fe2e578607ba28249bedbec7dc80ef02, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Noise3D:
+        m_Texture: {fileID: 11700000, guid: cfede982bccb50a4594d21e002741fad, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - _BGNoiseDensityStep: 2.93
+    - _BGNoiseScale: 43.8
+    - _BooleanScale: 0
+    - _EdgeAlpha: 0
+    - _EdgeIntensity: 1e+22
+    - _LightIntensity: 1
+    - _ModSize: 0
+    - _NoiseDensityStep: 0.2
+    - _NoiseScale: 2.09
+    - _ObjLightIntensity: 0.06
+    - _ObjLightIntensity1: 5.4
+    - _ObjLightIntensity2: 0.78
+    - _ObjLightIntensity3: 0.78
+    - _ObjLightRange: 0.66
+    - _ObjLightRange1: 0.41
+    - _ObjLightRange2: 4.46
+    - _ObjLightRange3: 4.46
+    - _OpacityFactor: 2.5
+    - _OpacityLimit: 1.1
+    - _ShadowIntensity: 1
+    - _VolumeCenterInBox: -0.5
+    - _VolumeDensityMaxDist: 310.7
+    - _VolumeDensityStep: 37.55
+    - _VolumeMin: -0.39
+    - _isVR: 1
+    m_Colors:
+    - _BoxPos: {r: 0, g: 0, b: 0, a: 0}
+    - _BoxSize: {r: 0.1, g: 0.1, b: 0.1, a: 0}
+    - _EdgeColor: {r: 0, g: 0, b: 0, a: 1}
+    - _LightCol: {r: 1, g: 0.8632076, b: 0.9568974, a: 1}
+    - _MainColor: {r: 1, g: 0.40438944, b: 0.2980392, a: 1}
+    - _ModSize: {r: 1, g: 1, b: 1, a: 0}
+    - _NoiseOffset: {r: 0, g: 0, b: -5.15, a: 0}
+    - _NoiseSpeed: {r: 0.01, g: 0, b: 0.01, a: 0}
+    - _OBJLightColor: {r: 1, g: 1, b: 1, a: 1}
+    - _ObjLightColor: {r: 32, g: 0, b: 0, a: 1}
+    - _ObjLightColor1: {r: 1.8113213, g: 1.8113213, b: 1.8113213, a: 1}
+    - _ObjLightColor2: {r: 1.9493203, g: 1.6530046, b: 1.0390245, a: 1}
+    - _ObjLightColor3: {r: 0.7075472, g: 0, b: 0.10754916, a: 1}
+    - _ObjLightPosition: {r: 44.09, g: 1.2, b: -17.39, a: 0}
+    - _ObjLightPosition1: {r: -0.1, g: 0.21, b: 0, a: 0}
+    - _ObjLightPosition2: {r: 0, g: 0.22, b: -0.09, a: 0}
+    - _ObjLightPosition3: {r: 0, g: -0.01, b: 0.44, a: 0}
+    - _ShadowDistance: {r: 0, g: 50, b: 0, a: 0}
+    - _VolumeCenterInBox: {r: 0, g: 0, b: 0, a: 0}
+    - _VolumePos: {r: -15, g: -15, b: -15, a: 0}
+    - _VolumeSize: {r: 30, g: 30, b: 30, a: 1}
