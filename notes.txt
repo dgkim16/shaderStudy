@@ -1,0 +1,373 @@
+/*
+PerspectiveCamera( fov : Number, aspect : Number, near : Number, far : Number )
+    fov — Camera frustum vertical field of view.
+    aspect — Camera frustum aspect ratio.
+    near — Camera frustum near plane.
+    far — Camera frustum far plane.
+OrthographicCamera( left : Number, right : Number, top : Number, bottom : Number, near : Number, far : Number )
+    left — Camera frustum left plane.
+    right — Camera frustum right plane.
+    top — Camera frustum top plane.
+    bottom — Camera frustum bottom plane.
+    near — Camera frustum near plane.
+    far — Camera frustum far plane.
+*/
+
+world coordinates : cube1.position.set(2, 0.5, 0);
+local coordinates : cube2.translateY(0.5);
+
+
+
+let objloader = new OBJLoader();
+objloader.load("./objects/07-astronaut.obj", function(astronaut) {
+        astronaut.position.set(1.5, 4, 0);
+        astronaut.scale.set(0.5, 0.5, 0.5);
+        scene.add(astronaut);
+        // note that we have to render
+        renderer.render(scene, camera);
+    });
+
+// try it with a promise...
+
+let obj = loader.loadAsync("./objects/07-astronaut.obj");
+obj.then(function(astronaut) {
+    astronaut.position.set(-2, 4, 0);
+    astronaut.scale.set(0.5, 0.5, 0.5);
+    scene.add(astronaut);
+    // note that we have to render
+    renderer.render(scene, camera);
+    });
+
+// warning - this has to be after everything is all set up!
+// it takes advantage of the fact that modules are allowed to be async
+// but the TS error checker doesn't know that
+
+let astro = await loader.loadAsync("./objects/07-astronaut.obj");
+astro.position.set(-0, 4, -2);
+astro.scale.set(0.5, 0.5, 0.5);
+scene.add(astro);
+
+Rotation via axis
+이거만 써서 다시 해보기
+
+  let dx = step;
+  let dy = 0;
+  let dz = step;
+
+  // convert the Euler angles to Axis Angle
+  function axisAngle(ex, ey, ez) {
+    let e = new T.Euler(ex, ey, ez);
+    let q = new T.Quaternion();
+    q.setFromEuler(e);
+
+    let angle = 2 * Math.acos(q.w);
+    let axisL = Math.sqrt(q.x * q.x + q.y * q.z + q.z * q.z);
+    let axisX = q.x / axisL;
+    let axisY = q.y / axisL;
+    let axisZ = q.z / axisL;
+    let axis = new T.Vector3(axisX, axisY, axisZ);
+
+    return { angle: angle, axis: axis };
+  }
+
+  let axAng = axisAngle(dx, dy, dz);
+  let axis = axAng.axis;
+  let angle = axAng.angle;
+  obj.rotateOnAxis(axis, angle*speed);	
+
+Mesh
+- "index list" : index of vertex from vertex list, 3 elements in each element of index list, each element of index list creates a triangle
+- "handedness" : normal of each triangle face the same way when builiding surface of geometry
+rt hand, shoulder at first index, arm direciton to 2nd vertex, fingers except thumb points to 3rd index (손바닥 faces 3rd index). Thumb direction gives normal direction
+- T Junction (we don't want this) : Vertex of different triangle alligned on edge of a triangle
+
+vertex list, index list, color list, normal list
+
+Three, bufferGeometry stores meshes made up of traingels
+'efficient'; uses typed array (fixed data type; nondynamic type. Fixed layout)
+Bufferattributes use fixed type of Float32Array (or Float64Array, precision difference)
+    ([xo,y0,z0,x1,x2,y1,....], 3)
+    '3' parameter tells element count that tells vertex information
+
+[x0, y0, z0, x1, y1, z1, ...], 
+the triangles are constructed using an index set [v0, v1, v2, v3, v4, v5, ...] 
+[v0, v1, v2] are the indices of the first triangle, 
+[v3, v4, v5] are the indices of the second triangle
+
+➭ let geometry = new THREE.BufferGeometry();
+➭ let vertices = new Float32Array([x0, y0, z0, x1, y1, z1, ...]);
+➭ geometry.setAttribute("position", new THREE.BufferAttribute(vertices, 3));
+➭ geometry.setIndex([v0, v1, v2, v3, v4, v5, ...]);
+
+face color interpolation using vertex colors: Barycentric interpolation
+- sharing vertex will therefore give same color
+- can only use 3 colors when using vertex colors
+- for more colors, use texture mapping
+
+normal vector, represent direction vertex faces (how it reacts to light)
+surface (triangle) will be computed using three normals
+light direction = -normal direction 가까워질수록 colored (if using vertex colors)
+
+'fake normals' are used in creating circles (round, smooth shapes)
+
+uvs = new Float32Array([u0,v0,u1,v1,...])
+coordinate system: (0,0) at bottom left, (1,1) at right top
+➭ let uvs = new Float32Array([u0, v0, u1, v1, ...]);
+➭ geometry.setAttribute("uv", new THREE.BufferAttribute(uvs, 2));
+UV list: for geometry, must set attribute.
+uv list ith element corresponds to ith element in vertex list 's uv positions
+
+shadows = texture taken by camera mapped onto object
+
+
+mesh = transformation & material
+
+vecrtex = position, normals, colors(at index)
+
+
+Lecture notes
+    https://pages.cs.wisc.edu/~yw/CS559W24CW9.html
+Three.face      no longer supported, so...
+    Need to repeat vertex to create triangles of different shape.
+
+2D Three.Shape
+3D THREE.ShapeGeometry
+Three.ExtrudeGeometry
+**    let shape = new THREE.Shape();
+    shape.moveTo(0, 0);
+    shape.lineTo(1, 1);
+    shape.quadraticCurveTo(1.5,0.5,1, 0);
+    shape.lineTo(0, 0); 
+    Three.ExtrudeGeometry(shape);
+Three.LatheGeometry     
+    rotates the curve around the axis.
+    input = array of points (vec2)
+**        for (let i = 0; i < 1; i += 0.1) {
+            points.push(new THREE.Vector2(i, i * i))
+            (i,i)       gives cone
+            (i, i^2)    gives quadratic curve
+            (i, i^3)    gives cubic curve
+            (Math.sin(i), Math.cos(i))      
+                        if bound of i = Math.PI, full circle. 
+                        if bound of i = half of pi, only top half
+        }
+
+----Three.Curve (do note 3 at the end of the function names)
+    ➭ THREE.LineCurve3(v1, v2);
+    ➭ THREE.QuadraticBezierCurve3(v1, v2, v3);
+    ➭ THREE.CubicBezierCurve3(v1, v2, v3, v4);
+    ➭ THREE.CatmullRomCurve3([v1, v2, ...], closed, "catmullrom", tension);, default tension is 0.5.
+
+----Three.TubeGeometry
+    generalised cyliner around arbitary(input) curve
+**        let p1 = new THREE.Vector3(-1, 1, 1);
+**        let p2 = new THREE.Vector3(1, 0, 1);
+**        let p3 = new THREE.Vector3(1, 1, -1);
+**        let curve = new THREE.CatmullRomCurve3([p1, p2, p3], true);
+**        let geometry = new THREE.TubeGeometry(curve);
+
+1. accumulate time by deltatime.
+2. then do time mod by 1
+    ** time = time % 1
+
+----using position along curve and copying to object    
+**  cube.position.copy(curve.getPoint(time));
+        ---- parameter is always between 0~1
+        ---- catmullrom in Three automatically maps into 0~1
+
+----using position along curve and copying to object        
+    -- in general, very difficult to figure out amount of rotation required for x,y,z direction
+    -- so hard to rotate via Math.atan2, but very easy with using lookAt(current position + tangent)
+        -- curve.getTangent(time) directly gives tangent on curve
+        -- adding to point of cube = direction of movement
+**  cube.lookAt(new THREE.Vector3().addVectors(cube.position, curve.getTangent(time)));
+
+arclength parameterization is also automatically done by Three
+**  getPointAt & getTangentAt
+**      cube.position.copy(curve.getPointAt(time));
+**      cube.lookAt(new THREE.Vector3().addVectors(cube.position, curve.getTangentAt(time)));
+
+
+Polynomail Surfaces
+---- very difficult in 3D, but identical as 2D approach
+    - surfaces in 3D representable by:
+        - parametrix form of (xyz) is in 2 different parameters f(u,v)
+        - implicit form: all points must satisfy the implicit function f(x,y,z) = 0
+    - cubic polynomial surfaces https://pages.cs.wisc.edu/~sifakis/courses/cs839-s22/
+    Subdivision Surfaces: http://www.holmes3d.net/graphics/subdivision/
+
+Three.SkinnedMesh allows rotation of some vertices
+    skin index & skin weight
+
+Morphing, possible with regular mesh
+    two geometries stored in single mesh.
+    sphere morphing into cube; interpolate vertex positions
+    one to one mapping of vertex is automatically done
+**      THREE.Mesh.morphTargetDictionary (list of morph targets)
+**      THREE.Mesh.morphTargetInfluences (weights on each morph target)
+    view-source:https://threejs.org/examples/webgl_morphtargets.html
+**      let vertices = geometry.getAttribute("position")
+**      let target = [];
+**      for (let i = 0; i < vertices.count; i++) {
+**          target.push(vertices.getX(i) * vertices.getX(i));
+**          target.push(vertices.getY(i));
+**          target.push(vertices.getZ(i));
+**      }
+**      geometry.morphAttributes.position[0] <- first target
+**      geometry.morphAttributes.position[1] <- second target
+**      geometry.morphAttributes.position[0] = new THREE.BufferAttribute(new Float32Array(target), 3);
+**      mesh.morphTargetInfluences[0] = 0.5 * (Math.sin(time / 1000) + 1);
+
+    note: morphing from cube to sphere is difficult
+
+    Potential Approach?
+    min cut of network flow approach to map vertex from first target each index?
+    (s.t. we have pair set of two nodes)
+
+
+Noraml
+    (위에서 말했듯이) in Three, we can assign normal differently to each vertices (fake normals) (manually)
+    or...
+Normal map
+    map each pixel on texture to normal on point of triangle 
+    each color (rgb) -> convert to x,y,z. Use that x,y,z as normal for that picture.
+
+Bump map
+    white = coming outside (1)
+    black = goes inside (0)
+    easire to draw than normalMap
+
+Displacement map
+    VERY COSTLY (actual movement of vertex)
+    do not cause occlusion or shadows
+    move vertex, if not many triangles, will have cracks
+    
+Using uv to morphing
+-morph target vertices created by uv values
+-convert uv values to point on sphere
+
+
+Enironment_map + normal_map (+ high metalness value) = Reflection
+
+
+
+https://pages.cs.wisc.edu/~yw/CS559W24CW9.html
+Uv mapping -- Barycentric Coordinates
+    1 pixel on texture may be larger than 1 pixel on scene(or screen), or smaller.
+    how to find color of each pixel
+    we use 3 coordinates used to specify point
+
+    a point on triangle
+        - by x,y
+        - by barycentric coordinates (weighed of a point from vertex points forming that triangle face)
+        => the weights are baracetnric coordinates
+        => a,b,c are distance from vertex 1,2,3 to the wanted point in a triangle
+        => p = a(v1) + b(v2) + c(v3) => (a,b,c)
+    1. in 3D, find barycentric coordinate. 
+    2. Use that weights on texture Image's 2D coordinate to get corresponding color.
+
+
+https://pages.cs.wisc.edu/~yw/CS559W24CW9.html
+Magnification
+    A pixel on screen may cover less than a pixel in the texture image.
+    Possible ways:
+    1) just using nearest color
+    3) bi-linear interpolation
+            interpolating colors by distance to colors
+    THREE.Texture.magFilter
+        - THREE.NearestFilter
+        - LinearFilter
+            (but actually bi-linear interpolation of 4 closest colors)
+
+Minification
+    One pixel on screen (3D triangle) cover many colors on texture image
+    Greedy approach takes a lot of computation (not efficient)
+    old method: summed up area (makes use of computer vision, still slow)
+    recent method: MIP map
+        store downscaling version of image in a pyramid-style on a single image
+        https://en.wikipedia.org/wiki/Mipmap#/media/File:Mipmap_illustration2.png
+    looking up mipmap:
+        use 1,2, or...
+        figure out which scale to use by...
+        THREE.Texture.minFilter
+                - THREE.NearestMipmapNearestFilter (nearest scale)
+                - THREE.NearestMipmapLinearFilter (interpolate between two different scales)
+                
+        - THREE.LinearMipmapNearestFilter
+        - THREE.LinearMipmapLinearFilter
+
+        tri-linear interpolation (u, v interpolation + interpolation between mipmaps)
+
+        THREE.Texture.minFilter as 
+        1 pxl THREE.NearestMipmapNearestFilter (1mipmap, 1pxl)
+        4 pxl THREE.NearestMipmapLinearFilter (1mipmap, 4pxls)
+        2 pxl THREE.LinearMipmapNearestFilter (2mipmaps, 1pxl from each)
+        8 pxl THREE.LinearMipmapLinearFilter (2mipmaps, 4pxl from each)
+    
+
+ShadowMap Texture
+    - place a camera at camera, take picture, use this as shadow map
+    - 'multipass rendering'
+
+Env map & shadow map don't use uv values. Just use 'camera' location
+Env map requires texture
+    (ex skybox)
+    Dynamic Environment Map (or use camera in three to take picture)
+    << multi-pass rendering >>
+    let camera = new THREE.CubeCamera(near, far, new THREE.WebGLCubeRenderTarget(size));
+        ➭ this takes 360 degree picture every frame
+    camera.update(renderer, scene);
+        ➭ It might be useful to make obj.visible = false; before taking the picture and obj.visible = true;
+    (but Three only allows this to be done once?)
+
+
+
+Morphing to sphere
+- for proper morhping, uv should be adjusted as well
+let vertices = geometry.getAttribute("position");
+    let target = function(_; vertices, THREE) {
+        let target = [];
+        for (let i = 0; i < vertices.count; i++) {
+
+        let x = vertices.getX(i);
+        let xx = x * x;
+        let y = vertices.getY(i);
+        let yy = y * y;
+        let z = vertices.getZ(i);
+        let zz = z * z;
+        let len = Math.sqrt(xx+yy+zz);
+        target.push(x/len);
+        target.push(y/len);
+        target.push(z/len);
+        }
+        return target;
+    }
+geometry.morphAttributes.position[0] = new THREE.BufferAttribute(new Float32Array(target), 3);
+mesh.morphTargetInfluences[0] = Math.sin(time / 1000) + 0.5;
+
+
+RenderTexture as 'texture'
+    https://pages.cs.wisc.edu/~yw/CS559/Code/09-07-01.js
+
+    let target = new T.WebGLRenderTarget(pixels);
+    let canvas - new T.CanvasTexture(world.renderer.domElement);
+    let perspective = new T.WebGLRenderTarget(256,256);
+    
+    let materialCanvas = new T.MeshStandardTexture({map: canvas});
+    target.texture 로 texture access 가능
+    this.mesh.material.map.needsUpdate = true;
+
+    - when not using canvas texture...: (tidious and 'buggy', not recommendeds)
+    world.renderer.setRenderTarget(perspective);
+    world.renderer.render(world.scene, world.camera);
+    world.renderer.setRenderTarget(null);
+
+Shaders
+- painter's algorithm (sorts triangles) vs Z-Buffer algorithm
+- in image, not only keep track of color, but keep track of depth
+
+Pipeline
+1 - (vertex shader) transform 3d triangles to 2d triangles while keeping track of z value of each vertex 
+2 - rasterize the triangles (into 'fragments') [fixed z-buffer algorithm] 
+3 - (fragment shader) figure out the color of the fragments. 
+4 - Write fragments to the image (with Z test) [fixed, z-buffer algorithm]
